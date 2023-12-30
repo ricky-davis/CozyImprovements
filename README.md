@@ -2,7 +2,7 @@
 # Cozy Improvements
 
 ## Overview
-Cozy Improvements is designed to enhance the lighting experience inside the ship to create a more immersive and cozy environment.
+Cozy Improvements is designed to enhance the lighting experience inside the ship to create a more immersive and cozy environment, as well as increasing usability of ship components in the dark.
 
 ## Features
 - Added lights inside of the Storage Container

@@ -8,7 +8,7 @@
     <Description>
 		Adds some lighting features to the inside of the ship for use with Cozy Lights
 	</Description>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
 	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>

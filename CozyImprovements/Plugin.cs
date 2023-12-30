@@ -52,6 +52,7 @@ namespace SpyciBot.LC.CozyImprovements
                     //  Make terminal display the Moons list on startup
                     TermInst.terminalInUse = true;
                     TermInst.screenText.text = "moons";
+                    TermInst.currentText = TermInst.screenText.text;
                     TermInst.textAdded = 5;
                     TermInst.OnSubmit();
                     TermInst.terminalInUse = false;

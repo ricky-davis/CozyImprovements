@@ -8,7 +8,7 @@
     <Description>
 		Adds some lighting features to the inside of the ship for use with Cozy Lights
 	</Description>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
 	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
@@ -50,8 +50,8 @@
 	  <Reference Include="Unity.TextMeshPro">
 		  <HintPath>$(LETHAL_COMPANY_DIR)\Lethal Company_Data\Managed\Unity.TextMeshPro.dll</HintPath>
 	  </Reference>
-	  <Reference Include="Unity.RenderPipelines.HighDefinition.Runtime">
-		  <HintPath>$(LETHAL_COMPANY_DIR)\Lethal Company_Data\Managed\Unity.RenderPipelines.HighDefinition.Runtime.dll</HintPath>
+	  <Reference Include="UnityEngine.UI">
+		  <HintPath>$(LETHAL_COMPANY_DIR)\Lethal Company_Data\Managed\UnityEngine.UI.dll</HintPath>
 	  </Reference>
   </ItemGroup>
 </Project>

@@ -2,7 +2,9 @@
 using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.Rendering.HighDefinition;
+using Unity.Netcode;
+using System.Reflection;
+using GameNetcodeStuff;
 
 namespace SpyciBot.LC.CozyImprovements
 {
@@ -18,6 +20,10 @@ namespace SpyciBot.LC.CozyImprovements
             Harmony.CreateAndPatchAll(typeof(CozyImprovements));
         }
 
+
+        // 
+        // Terminal Fixes
+        //
         [HarmonyPatch(typeof(Terminal), "waitUntilFrameEndToSetActive")]
         [HarmonyPrefix]
         static void PrefixWaitUntilFrameEndToSetActive(Terminal __instance, ref bool active)
@@ -27,20 +33,55 @@ namespace SpyciBot.LC.CozyImprovements
             active = true;
         }
 
+        [HarmonyPatch(typeof(Terminal), "SetTerminalInUseClientRpc")]
+        [HarmonyPostfix]
+        static void PostfixSetTerminalInUseClientRpc(Terminal __instance, bool inUse)
+        {
+            // Force terminal light to always be turned on/visible
+            TermInst.terminalLight.enabled = true;
+        }
+
+
+        //
+        // Run on Client and Host
+        //
+
+        [HarmonyPatch(typeof(StartOfRound), "OnPlayerConnectedClientRpc")]
+        [HarmonyPostfix]
+        static private void PostfixOnPlayerConnectedClientRpc(StartOfRound __instance, ulong clientId, int connectedPlayers, ulong[] connectedPlayerIdsOrdered, int assignedPlayerObjectId, int serverMoneyAmount, int levelID, int profitQuota, int timeUntilDeadline, int quotaFulfilled, int randomSeed)
+        {
+            // This will trigger on every client every time a client joins, so only do stuff if it's the joining client
+            if (clientId == NetworkManager.Singleton.LocalClientId)
+            {
+                DoAllTheThings();
+            }
+        }
+
         [HarmonyPatch(typeof(StartOfRound), "LoadUnlockables")]
         [HarmonyPostfix]
         static void PostfixLoadUnlockables(StartOfRound __instance)
         {
+            // This will only trigger on the host
+            DoAllTheThings();
+        }
+
+
+        //
+        // All The Things™️
+        //
+
+        private static void DoAllTheThings()
+        {
             makeObjectsGlow();
             spawnStorageLights();
         }
-
         private static void makeObjectsGlow()
         {
+            PlayerControllerB localPlayerController = GameNetworkManager.Instance.localPlayerController;
             GameObject[] array = GameObject.FindGameObjectsWithTag("InteractTrigger");
             for (int i = 0; i < array.Length; i++)
             {
-                Debug.Log($"{i} -- {array[i].name}");
+                //Debug.Log($"{i} -- {array[i].name}");
                 if (array[i].name == "LightSwitch")
                 {
                     // Make the light switch panel glow green and make the switch glow red
@@ -49,37 +90,18 @@ namespace SpyciBot.LC.CozyImprovements
                 }
                 if (array[i].name == "TerminalScript")
                 {
-                    //  Make terminal display the Moons list on startup
+                    //  Make terminal display the Store list on startup
                     TermInst.terminalInUse = true;
-                    TermInst.screenText.text = "moons";
+                    TermInst.screenText.text = "Store";
                     TermInst.currentText = TermInst.screenText.text;
                     TermInst.textAdded = 5;
                     TermInst.OnSubmit();
                     TermInst.terminalInUse = false;
+                    InteractTrigger terminalTrigger = (InteractTrigger)typeof(Terminal).GetField("terminalTrigger", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(TermInst);
+                    terminalTrigger.StopSpecialAnimation();
 
-                    GameObject Canvas = array[i].transform.parent.parent.GetChild(0).gameObject;
-
-                    // Add a green glow to the terminal monitor
-                    GameObject lightObject = new GameObject("TerminalLight");
-                    Light lightComponent = lightObject.AddComponent<Light>();
-                    lightComponent.type = LightType.Spot;
-                    lightComponent.color = new Color32(140, 240, 140, 255);
-                    lightComponent.intensity = 8.0f;
-                    lightComponent.range = 3.0f;
-                    lightComponent.spotAngle = 179.0f;
-                    lightComponent.shadows = LightShadows.Soft;
-
-
-                    HDAdditionalLightData HDLightComponent = lightObject.AddComponent<HDAdditionalLightData>();
-                    HDLightComponent.intensity = 100.0f;
-                    HDLightComponent.affectSpecular = false;
-                    HDLightComponent.useCustomSpotLightShadowCone = true;
-
-
-                    lightObject.layer = LayerMask.NameToLayer("Room");
-                    lightObject.transform.localPosition = new Vector3(0.0f, 100.0f, 400.0f);
-                    lightObject.transform.rotation = Quaternion.Euler(0, 180, 0);
-                    lightObject.transform.SetParent(Canvas.transform, false);
+                    // Force terminal light to always be turned on/visible
+                    TermInst.terminalLight.enabled = true;
 
 
 
@@ -103,16 +125,6 @@ namespace SpyciBot.LC.CozyImprovements
                     //lightObject.transform.rotation = Quaternion.Euler(0, 180, 0);
                     lightObject.transform.SetParent(ChargeStation.transform, false);
                 }
-                if (array[i].name == "Cube")
-                {
-                    Debug.Log(array[i].transform.parent.GetChild(0).gameObject.name);
-                }
-                /*
-                if (array[i].name == "Cube" && array[i].transform.parent.childCount >= 2 && array[i].transform.parent.GetChild(0).gameObject.name == "SpeakerAudio")
-                {
-                    GameObject SpeakerBox = array[i].transform.parent.gameObject;
-                    makeEmissive(SpeakerBox, new Color32(241, 80, 80, 10), 0.15f);
-                }*/
             }
         }
         private static void makeEmissive(GameObject gameObject, Color32 glowColor, float brightness = 0.02f)
@@ -132,7 +144,7 @@ namespace SpyciBot.LC.CozyImprovements
             {
                 StartOfRound sorInst = StartOfRound.Instance;
                 UnlockableItem unlockableItem = sorInst.unlockablesList.unlockables[array[i].unlockableID];
-                //int unlockableType = unlockableItem.unlockableType;
+                int unlockableType = unlockableItem.unlockableType;
                 if (unlockableItem.unlockableName == "Cupboard")
                 {
                     /*
@@ -185,14 +197,7 @@ namespace SpyciBot.LC.CozyImprovements
             AttachLightToStorageCloset(gameObject, new Vector3(midPoint, 0.4f, shelfHeight));
             AttachLightToStorageCloset(gameObject, new Vector3(midPoint + lightOffset, 0.4f, shelfHeight));
         }
-        /*
-        private static string padString(string baseStr, char padChar, int width)
-        {
-            int paddingWidth = width - (baseStr.Length + 8);
-            int padLeft = paddingWidth / 2 + (baseStr.Length + 8);
-            string paddedStr = ("    " + baseStr + "    ").PadLeft(padLeft, padChar).PadRight(width, padChar);
-            return paddedStr;
-        }*/
+        
         private static void AttachLightToStorageCloset(GameObject closet, Vector3 lightPositionOffset, float intensity = 3.0f)
         {
             // Create lightbulb object
@@ -230,5 +235,28 @@ namespace SpyciBot.LC.CozyImprovements
             lightObject.transform.SetParent(closet.transform, false);
 
         }
+
+
+        //
+        // Utilities
+        //
+        private static string padString(string baseStr, char padChar, int width)
+        {
+            int paddingWidth = width - (baseStr.Length + 8);
+            int padLeft = paddingWidth / 2 + (baseStr.Length + 8);
+            string paddedStr = ("    " + baseStr + "    ").PadLeft(padLeft, padChar).PadRight(width, padChar);
+            return paddedStr;
+        }
+        private static void obviousDebug(string baseStr)
+        {
+            Debug.Log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Debug.Log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Debug.Log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Debug.Log(padString("" + baseStr, '~', 65));
+            Debug.Log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Debug.Log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Debug.Log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        }
+
     }
 }

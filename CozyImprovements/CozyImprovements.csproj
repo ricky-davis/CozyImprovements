@@ -8,7 +8,7 @@
     <Description>
 		Adds some lighting features to the inside of the ship for use with Cozy Lights
 	</Description>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
 	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
@@ -38,8 +38,8 @@
   </ItemGroup>
 	
   <ItemGroup Condition="$(CI) != 'true'">
-    <Reference Include="Assembly-CSharp" Publicize="true">
-      <HintPath>$(LETHAL_COMPANY_DIR)\Lethal Company_Data\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="Assembly-CSharp-nstrip" Publicize="true">
+      <HintPath>..\..\Libs\Assembly-CSharp-nstrip.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Netcode.Runtime">
       <HintPath>$(LETHAL_COMPANY_DIR)\Lethal Company_Data\Managed\Unity.Netcode.Runtime.dll</HintPath>

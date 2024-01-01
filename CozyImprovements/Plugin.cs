@@ -6,6 +6,11 @@ using Unity.Netcode;
 using System.Reflection;
 using GameNetcodeStuff;
 
+using System.Security.Permissions;
+using System.ComponentModel;
+
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+
 namespace SpyciBot.LC.CozyImprovements
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -91,14 +96,7 @@ namespace SpyciBot.LC.CozyImprovements
                 if (array[i].name == "TerminalScript")
                 {
                     //  Make terminal display the Store list on startup
-                    TermInst.terminalInUse = true;
-                    TermInst.screenText.text = "Store";
-                    TermInst.currentText = TermInst.screenText.text;
-                    TermInst.textAdded = 5;
-                    TermInst.OnSubmit();
-                    TermInst.terminalInUse = false;
-                    InteractTrigger terminalTrigger = (InteractTrigger)typeof(Terminal).GetField("terminalTrigger", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(TermInst);
-                    terminalTrigger.StopSpecialAnimation();
+                    TermInst.LoadNewNode(TermInst.terminalNodes.specialNodes[1]);
 
                     // Force terminal light to always be turned on/visible
                     TermInst.terminalLight.enabled = true;

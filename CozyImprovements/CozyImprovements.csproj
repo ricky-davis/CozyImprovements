@@ -6,7 +6,7 @@
 	<AssemblyName>com.spycibot.cozyimprovements</AssemblyName>
 	<Product>Cozy Improvements</Product>
     <Description>
-		Adds some lighting features to the inside of the ship for use with Cozy Lights
+		Enhance the experience inside the ship to create a more immersive, cozy, and accessible environment.
 	</Description>
     <Version>1.2.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

@@ -8,21 +8,27 @@ using GameNetcodeStuff;
 
 using System.Security.Permissions;
 using System.ComponentModel;
+using SpyciBot.LC.CozyImprovements.Improvements;
 
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
 namespace SpyciBot.LC.CozyImprovements
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+    [HarmonyPatch]
     public class CozyImprovements : BaseUnityPlugin
     {
         static new GameObject gameObject = null;
         static Terminal TermInst = null;
+
+        public static Config CozyConfig { get; internal set; }
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_NAME} - {PluginInfo.PLUGIN_GUID} - {PluginInfo.PLUGIN_VERSION} is loaded!");
-            Harmony.CreateAndPatchAll(typeof(CozyImprovements));
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
+            CozyConfig = new(base.Config);
+            Debug.Log(Assembly.GetExecutingAssembly());
         }
 
 
@@ -77,10 +83,10 @@ namespace SpyciBot.LC.CozyImprovements
 
         private static void DoAllTheThings()
         {
-            makeObjectsGlow();
+            manageInteractables();
             spawnStorageLights();
         }
-        private static void makeObjectsGlow()
+        private static void manageInteractables()
         {
             PlayerControllerB localPlayerController = GameNetworkManager.Instance.localPlayerController;
             GameObject[] array = GameObject.FindGameObjectsWithTag("InteractTrigger");
@@ -101,14 +107,12 @@ namespace SpyciBot.LC.CozyImprovements
                     // Force terminal light to always be turned on/visible
                     TermInst.terminalLight.enabled = true;
 
-
-
                 }
                 if (array[i].name == "Trigger")
                 {
                     GameObject ChargeStation = array[i].transform.parent.parent.gameObject;
 
-                    // Add a green glow to the terminal monitor
+                    // Add a yellow glow to the ChargeStation
                     GameObject lightObject = new GameObject("ChargeStationLight");
                     Light lightComponent = lightObject.AddComponent<Light>();
                     lightComponent.type = LightType.Point;
@@ -123,17 +127,19 @@ namespace SpyciBot.LC.CozyImprovements
                     //lightObject.transform.rotation = Quaternion.Euler(0, 180, 0);
                     lightObject.transform.SetParent(ChargeStation.transform, false);
                 }
+                if (array[i].name == "Cube (2)" && array[i].transform.parent.gameObject.name.StartsWith("CameraMonitor"))
+                {
+                    Accessibility.adjustMonitorButtons(array[i].gameObject);
+                }
             }
         }
         private static void makeEmissive(GameObject gameObject, Color32 glowColor, float brightness = 0.02f)
         {
             MeshRenderer meshRenderer = gameObject.GetComponent<MeshRenderer>();
-            Color lightSwitchColor = glowColor; 
-            Material lightSwitchMaterial = meshRenderer.material;
+            Material EmMaterial = meshRenderer.material;
 
-            float emissiveIntensity = brightness;
-            lightSwitchMaterial.SetColor("_EmissiveColor", lightSwitchColor * emissiveIntensity);
-            meshRenderer.material = lightSwitchMaterial;
+            EmMaterial.SetColor("_EmissiveColor", (Color) glowColor * brightness);
+            meshRenderer.material = EmMaterial;
         }
         private static void spawnStorageLights()
         {

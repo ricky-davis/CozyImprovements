@@ -7,13 +7,14 @@ namespace SpyciBot.LC.CozyImprovements.Improvements
     public static class Accessibility
     {
         static HangarShipDoor hangarShipDoor = null;
+
         // 
         // Launch Lever Fixes
+        // - Make hitbox of launch lever huge so it's easy to pull
         //
-
         [HarmonyPatch(typeof(StartMatchLever), "Start")]
-        [HarmonyPrefix]
-        static void Prefix_StartMatchLever_Start(StartMatchLever __instance)
+        [HarmonyPostfix]
+        static void Postfix_StartMatchLever_Start(StartMatchLever __instance)
         {
             // Don't bother if the config option is disabled
             if (!CozyImprovements.CozyConfig.configEasyLaunchLever.Value)
@@ -30,11 +31,12 @@ namespace SpyciBot.LC.CozyImprovements.Improvements
 
         // 
         // Hangar Door Button Panel Fixes
+        // - This makes the panel much bigger and makes it easy to press button to open/close the doors
         //
 
         [HarmonyPatch(typeof(HangarShipDoor), "Start")]
-        [HarmonyPrefix]
-        static void Prefix_HangarShipDoor_Start(HangarShipDoor __instance)
+        [HarmonyPostfix]
+        static void Postfix_HangarShipDoor_Start(HangarShipDoor __instance)
         {
             // Don't bother if the config option is disabled
             if (!CozyImprovements.CozyConfig.configBigDoorButtons.Value)
@@ -113,8 +115,10 @@ namespace SpyciBot.LC.CozyImprovements.Improvements
 
         }
 
-        // Toggle which button is usable depending on if the door is open or not
-
+        //
+        // Hangar Door Button Panel Fixes
+        // - Toggle which button is usable depending on if the door is open or not
+        //
         [HarmonyPatch(typeof(StartOfRound), "SetShipDoorsClosed")]
         [HarmonyPostfix]
         static void Postfix_StartOfRound_SetShipDoorsClosed(StartOfRound __instance, bool closed)
@@ -151,8 +155,10 @@ namespace SpyciBot.LC.CozyImprovements.Improvements
             }
         }
 
-        // Toggle which button is usable depending on if the door is open or not
-
+        //
+        // Teleporter Fixes
+        // - Make the Teleporter Buttons bigger
+        //
         [HarmonyPatch(typeof(ShipTeleporter), "Awake")]
         [HarmonyPostfix]
         static void Postfix_ShipTeleporter_Awake(ShipTeleporter __instance)
@@ -164,7 +170,10 @@ namespace SpyciBot.LC.CozyImprovements.Improvements
             TeleporterButton.transform.localScale = (Vector3.one * 3f);
         }
 
-
+        //
+        // Monitor Fixes
+        // - Make the Monitor Buttons bigger
+        //
         public static void adjustMonitorButtons(GameObject ButtonCube)
         {
             // Don't bother if the config option is disabled

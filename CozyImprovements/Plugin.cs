@@ -28,7 +28,6 @@ namespace SpyciBot.LC.CozyImprovements
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_NAME} - {PluginInfo.PLUGIN_GUID} - {PluginInfo.PLUGIN_VERSION} is loaded!");
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             CozyConfig = new(base.Config);
-            Debug.Log(Assembly.GetExecutingAssembly());
         }
 
 
@@ -39,17 +38,23 @@ namespace SpyciBot.LC.CozyImprovements
         [HarmonyPrefix]
         static void PrefixWaitUntilFrameEndToSetActive(Terminal __instance, ref bool active)
         {
-            // Force terminal canvas to always be turned on/visible
             TermInst = __instance;
-            active = true;
+            if (CozyImprovements.CozyConfig.configTerminalMonitorAlwaysOn.Value)
+            {
+                // Force terminal canvas to always be turned on/visible
+                active = true;
+            }
         }
 
         [HarmonyPatch(typeof(Terminal), "SetTerminalInUseClientRpc")]
         [HarmonyPostfix]
         static void PostfixSetTerminalInUseClientRpc(Terminal __instance, bool inUse)
         {
-            // Force terminal light to always be turned on/visible
-            TermInst.terminalLight.enabled = true;
+            if (CozyImprovements.CozyConfig.configTerminalGlow.Value)
+            {
+                // Force terminal light to always be turned on/visible
+                TermInst.terminalLight.enabled = true;
+            }
         }
 
 
@@ -84,7 +89,7 @@ namespace SpyciBot.LC.CozyImprovements
         private static void DoAllTheThings()
         {
             manageInteractables();
-            spawnStorageLights();
+            manageStorageCupboard();
         }
         private static void manageInteractables()
         {
@@ -95,41 +100,56 @@ namespace SpyciBot.LC.CozyImprovements
                 //Debug.Log($"{i} -- {array[i].name}");
                 if (array[i].name == "LightSwitch")
                 {
-                    // Make the light switch panel glow green and make the switch glow red
-                    makeEmissive(array[i], new Color32(182, 240, 150, 102), 0.02f);
-                    makeEmissive(array[i].transform.GetChild(0).gameObject, new Color32(241, 80, 80, 10), 0.15f);
+                    if (CozyImprovements.CozyConfig.configLightSwitchGlow.Value)
+                    {
+                        // Make the light switch panel glow green and make the switch glow red
+                        makeEmissive(array[i], new Color32(182, 240, 150, 102), 0.02f);
+                        makeEmissive(array[i].transform.GetChild(0).gameObject, new Color32(241, 80, 80, 10), 0.15f);
+                    }
                 }
                 if (array[i].name == "TerminalScript")
                 {
-                    //  Make terminal display the Store list on startup
-                    TermInst.LoadNewNode(TermInst.terminalNodes.specialNodes[1]);
+                    if (CozyImprovements.CozyConfig.configTerminalMonitorAlwaysOn.Value)
+                    {
+                        //  Make terminal display the Store list on startup
+                        TermInst.LoadNewNode(TermInst.terminalNodes.specialNodes[1]);
+                    }
 
-                    // Force terminal light to always be turned on/visible
-                    TermInst.terminalLight.enabled = true;
+                    if (CozyImprovements.CozyConfig.configTerminalGlow.Value)
+                    {
+                        // Force terminal light to always be turned on/visible
+                        TermInst.terminalLight.enabled = true;
+                    }
 
                 }
                 if (array[i].name == "Trigger")
                 {
-                    GameObject ChargeStation = array[i].transform.parent.parent.gameObject;
+                    if (CozyImprovements.CozyConfig.configChargeStationGlow.Value)
+                    {
+                        GameObject ChargeStation = array[i].transform.parent.parent.gameObject;
 
-                    // Add a yellow glow to the ChargeStation
-                    GameObject lightObject = new GameObject("ChargeStationLight");
-                    Light lightComponent = lightObject.AddComponent<Light>();
-                    lightComponent.type = LightType.Point;
-                    lightComponent.color = new Color32(240, 240, 140, 255);
-                    lightComponent.intensity = 0.05f;
-                    lightComponent.range = 0.3f;
-                    //lightComponent.spotAngle = 179.0f;
-                    lightComponent.shadows = LightShadows.Soft;
+                        // Add a yellow glow to the ChargeStation
+                        GameObject lightObject = new GameObject("ChargeStationLight");
+                        Light lightComponent = lightObject.AddComponent<Light>();
+                        lightComponent.type = LightType.Point;
+                        lightComponent.color = new Color32(240, 240, 140, 255);
+                        lightComponent.intensity = 0.05f;
+                        lightComponent.range = 0.3f;
+                        //lightComponent.spotAngle = 179.0f;
+                        lightComponent.shadows = LightShadows.Soft;
 
-                    lightObject.layer = LayerMask.NameToLayer("Room");
-                    lightObject.transform.localPosition = new Vector3(0.5f, 0.0f, 0.0f);
-                    //lightObject.transform.rotation = Quaternion.Euler(0, 180, 0);
-                    lightObject.transform.SetParent(ChargeStation.transform, false);
+                        lightObject.layer = LayerMask.NameToLayer("Room");
+                        lightObject.transform.localPosition = new Vector3(0.5f, 0.0f, 0.0f);
+                        //lightObject.transform.rotation = Quaternion.Euler(0, 180, 0);
+                        lightObject.transform.SetParent(ChargeStation.transform, false);
+                    }
                 }
                 if (array[i].name == "Cube (2)" && array[i].transform.parent.gameObject.name.StartsWith("CameraMonitor"))
                 {
-                    Accessibility.adjustMonitorButtons(array[i].gameObject);
+                    if (CozyImprovements.CozyConfig.configBigMonitorButtons.Value)
+                    {
+                        Accessibility.adjustMonitorButtons(array[i].gameObject);
+                    }
                 }
             }
         }
@@ -141,8 +161,9 @@ namespace SpyciBot.LC.CozyImprovements
             EmMaterial.SetColor("_EmissiveColor", (Color) glowColor * brightness);
             meshRenderer.material = EmMaterial;
         }
-        private static void spawnStorageLights()
+        private static void manageStorageCupboard()
         {
+
             PlaceableShipObject[] array = Object.FindObjectsOfType<PlaceableShipObject>();
             for (int i = 0; i < array.Length; i++)
             {
@@ -170,6 +191,16 @@ namespace SpyciBot.LC.CozyImprovements
             {
                 return;
             }
+
+
+            // Don't bother if the config option is disabled
+            if (CozyImprovements.CozyConfig.configStorageLights.Value)
+            {
+                spawnStorageLights(gameObject);
+            }
+        }
+        private static void spawnStorageLights(GameObject storageCloset)
+        {
             /*
             MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
             Vector3 size = renderer.bounds.size;
@@ -182,27 +213,26 @@ namespace SpyciBot.LC.CozyImprovements
 
             // Top Shelf
             float shelfHeight = heightList[0];
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint - lightOffset, 0.4f, shelfHeight));
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint, 0.4f, shelfHeight));
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint + lightOffset, 0.4f, shelfHeight));
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint - lightOffset, 0.4f, shelfHeight));
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint, 0.4f, shelfHeight));
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint + lightOffset, 0.4f, shelfHeight));
             // 2nd Shelf
             shelfHeight = heightList[1];
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint - lightOffset, 0.4f, shelfHeight));
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint, 0.4f, shelfHeight));
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint + lightOffset, 0.4f, shelfHeight));
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint - lightOffset, 0.4f, shelfHeight));
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint, 0.4f, shelfHeight));
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint + lightOffset, 0.4f, shelfHeight));
             // 3rd Shelf
             shelfHeight = heightList[2];
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint - lightOffset, 0.4f, shelfHeight), 2.0f);
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint, 0.4f, shelfHeight), 2.0f);
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint + lightOffset, 0.4f, shelfHeight), 2.0f);
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint - lightOffset, 0.4f, shelfHeight), 2.0f);
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint, 0.4f, shelfHeight), 2.0f);
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint + lightOffset, 0.4f, shelfHeight), 2.0f);
             // Bottom Shelf
             shelfHeight = heightList[3];
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint - lightOffset, 0.4f, shelfHeight));
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint, 0.4f, shelfHeight));
-            AttachLightToStorageCloset(gameObject, new Vector3(midPoint + lightOffset, 0.4f, shelfHeight));
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint - lightOffset, 0.4f, shelfHeight));
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint, 0.4f, shelfHeight));
+            AttachLightToStorageCloset(storageCloset, new Vector3(midPoint + lightOffset, 0.4f, shelfHeight));
         }
-        
-        private static void AttachLightToStorageCloset(GameObject closet, Vector3 lightPositionOffset, float intensity = 3.0f)
+        private static void AttachLightToStorageCloset(GameObject storageCloset, Vector3 lightPositionOffset, float intensity = 3.0f)
         {
             // Create lightbulb object
             GameObject lightObject = new GameObject("StorageClosetLight");
@@ -236,7 +266,7 @@ namespace SpyciBot.LC.CozyImprovements
             lightObject.transform.localScale = new Vector3(0.125f, 0.125f, 0.04f);
             lightObject.transform.localPosition = lightPositionOffset;
             lightObject.transform.rotation = Quaternion.Euler(170, 0, 0);
-            lightObject.transform.SetParent(closet.transform, false);
+            lightObject.transform.SetParent(storageCloset.transform, false);
 
         }
 

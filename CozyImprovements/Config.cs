@@ -25,7 +25,7 @@ namespace SpyciBot.LC.CozyImprovements
                     "General",                  // Config subsection
                     "StorageLightsEnabled",                  // Key of this config
                     true,                               // Default value
-                    "Makes the LightSwitch glow in the dark"         // Description
+                    "Enables the Storage Lights System"         // Description
             );
             configLightSwitchGlow = cfg.Bind(
                     "General",                  // Config subsection

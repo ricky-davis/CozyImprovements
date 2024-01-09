@@ -34,9 +34,26 @@ namespace SpyciBot.LC.CozyImprovements
         // 
         // Terminal Fixes
         //
+        [HarmonyPatch(typeof(Terminal), "Start")]
+        [HarmonyPostfix]
+        static void Postfix_Terminal_Start(Terminal __instance)
+        {
+            TermInst = __instance;
+            if (CozyImprovements.CozyConfig.configTerminalMonitorAlwaysOn.Value)
+            {
+                //  Make terminal display the Store list on startup
+                TermInst.LoadNewNode(TermInst.terminalNodes.specialNodes[1]);
+            }
+            if (CozyImprovements.CozyConfig.configTerminalGlow.Value)
+            {
+                // Force terminal light to always be turned on/visible
+                TermInst.terminalLight.enabled = true;
+            }
+        }
+
         [HarmonyPatch(typeof(Terminal), "waitUntilFrameEndToSetActive")]
         [HarmonyPrefix]
-        static void PrefixWaitUntilFrameEndToSetActive(Terminal __instance, ref bool active)
+        static void Prefix_Terminal_WaitUntilFrameEndToSetActive(Terminal __instance, ref bool active)
         {
             TermInst = __instance;
             if (CozyImprovements.CozyConfig.configTerminalMonitorAlwaysOn.Value)
@@ -48,7 +65,7 @@ namespace SpyciBot.LC.CozyImprovements
 
         [HarmonyPatch(typeof(Terminal), "SetTerminalInUseClientRpc")]
         [HarmonyPostfix]
-        static void PostfixSetTerminalInUseClientRpc(Terminal __instance, bool inUse)
+        static void Postfix_Terminal_SetTerminalInUseClientRpc(Terminal __instance, bool inUse)
         {
             if (CozyImprovements.CozyConfig.configTerminalGlow.Value)
             {
@@ -106,21 +123,6 @@ namespace SpyciBot.LC.CozyImprovements
                         makeEmissive(array[i], new Color32(182, 240, 150, 102), 0.02f);
                         makeEmissive(array[i].transform.GetChild(0).gameObject, new Color32(241, 80, 80, 10), 0.15f);
                     }
-                }
-                if (array[i].name == "TerminalScript")
-                {
-                    if (CozyImprovements.CozyConfig.configTerminalMonitorAlwaysOn.Value)
-                    {
-                        //  Make terminal display the Store list on startup
-                        TermInst.LoadNewNode(TermInst.terminalNodes.specialNodes[1]);
-                    }
-
-                    if (CozyImprovements.CozyConfig.configTerminalGlow.Value)
-                    {
-                        // Force terminal light to always be turned on/visible
-                        TermInst.terminalLight.enabled = true;
-                    }
-
                 }
                 if (array[i].name == "Trigger")
                 {

@@ -6,9 +6,9 @@
 	<AssemblyName>com.spycibot.cozyimprovements</AssemblyName>
 	<Product>Cozy Improvements</Product>
     <Description>
-		Enhance the experience inside the ship to create a more immersive, cozy, and accessible environment.
-	</Description>
-    <Version>1.2.0</Version>
+      Enhance the experience inside the ship to create a more immersive, cozy, and accessible environment. v47 compatible.
+    </Description>
+    <Version>1.2.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
 	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>

@@ -9,6 +9,7 @@ using GameNetcodeStuff;
 using System.Security.Permissions;
 using System.ComponentModel;
 using SpyciBot.LC.CozyImprovements.Improvements;
+using System;
 
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
@@ -67,6 +68,7 @@ namespace SpyciBot.LC.CozyImprovements
         [HarmonyPostfix]
         static void Postfix_Terminal_SetTerminalInUseClientRpc(Terminal __instance, bool inUse)
         {
+            TermInst = __instance;
             if (CozyImprovements.CozyConfig.configTerminalGlow.Value)
             {
                 // Force terminal light to always be turned on/visible
@@ -105,9 +107,21 @@ namespace SpyciBot.LC.CozyImprovements
 
         private static void DoAllTheThings()
         {
-            manageInteractables();
-            manageStorageCupboard();
+            try {
+                manageInteractables();
+            }
+            catch (Exception ex){
+                Debug.LogError($"Caught Exception in manageInteractables(): {ex}");
+            }
+            try {
+                manageStorageCupboard();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Caught Exception in manageStorageCupboard(): {ex}");
+            }
         }
+
         private static void manageInteractables()
         {
             PlayerControllerB localPlayerController = GameNetworkManager.Instance.localPlayerController;
@@ -124,7 +138,7 @@ namespace SpyciBot.LC.CozyImprovements
                         makeEmissive(array[i].transform.GetChild(0).gameObject, new Color32(241, 80, 80, 10), 0.15f);
                     }
                 }
-                if (array[i].name == "Trigger")
+                if (array[i].name == "Trigger" && array[i].transform.parent.gameObject.name == "ChargeStationTrigger")
                 {
                     if (CozyImprovements.CozyConfig.configChargeStationGlow.Value)
                     {
@@ -166,7 +180,7 @@ namespace SpyciBot.LC.CozyImprovements
         private static void manageStorageCupboard()
         {
 
-            PlaceableShipObject[] array = Object.FindObjectsOfType<PlaceableShipObject>();
+            PlaceableShipObject[] array = GameObject.FindObjectsOfType<PlaceableShipObject>();
             for (int i = 0; i < array.Length; i++)
             {
                 StartOfRound sorInst = StartOfRound.Instance;

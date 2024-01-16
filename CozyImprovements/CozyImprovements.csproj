@@ -8,7 +8,7 @@
     <Description>
       Enhance the experience inside the ship to create a more immersive, cozy, and accessible environment. v47 compatible.
     </Description>
-    <Version>1.2.1</Version>
+    <Version>1.2.2</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
 	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>

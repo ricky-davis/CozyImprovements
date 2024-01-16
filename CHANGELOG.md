@@ -1,3 +1,14 @@
+# Cozy Improvements 1.2.2
+**Bugfixes**  
+- Refined object validation so code doesn't try to get run on incorrect objects.
+- Added error handling so this shouldn't break anything if it's missed in the future
+
+
+# Cozy Improvements 1.2.1
+**Bugfixes**  
+- Updated hooks to support v47
+- Coincidentally fixed incompatibilities with a few mods
+
 # Cozy Improvements 1.2.0 
 **Improvements**  
 - Added configs!
